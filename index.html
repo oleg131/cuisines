@@ -1,0 +1,96 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>ML In Production</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/checkout/">
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css" integrity="sha256-UzFD2WYH2U1dQpKDjjZK72VtPeWP50NoJjd26rnAdUI=" crossorigin="anonymous" />
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@7.1.2/highcharts.min.js"></script>
+
+    <script>
+      $(document).ready(function() {
+        var chart = Highcharts.chart("result", {
+          chart: {
+            inverted: true,
+            backgroundColor: "#f8f9fa",
+            style: {
+                fontFamily: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"]
+            }
+          },
+          title: {
+              text: "Prediction probabilities"
+          },
+          xAxis: {
+            categories: []
+          },
+          series: [{
+              type: "column",
+              colorByPoint: true,
+              data: [],
+              showInLegend: false,
+              name: ""
+          }]
+        });
+
+        $("#submit").click(function() {
+          $.get("/get", {query: $("#text").val()}, function(data) {
+            chart.series[0].setData(data);
+            chart.update({
+              xAxis: {
+                categories: data.map(x => x["name"])
+              }
+            })
+
+            $("#result").show();
+          })
+        })
+      });
+    </script>
+
+  </head>
+
+  <body class="bg-light">
+
+    <div class="container">
+      <div class="py-5 text-center">
+        <i class="fas fa-pepper-hot fa-4x fa-fw" style="padding-bottom: 1vh"></i>
+        <h2>Cuisine Model</h2>
+        <p class="lead">Below is an example of estimator predicting cuisine from a list of ingredients.</p>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12 order-md-1">
+          <h4 class="mb-3">Enter ingredients</h4>
+          <form class="needs-validation" novalidate>
+            <div class="input-group">
+              <textarea id="text" class="form-control" aria-label="With textarea" style="height: 20vh">kimchi</textarea>
+            </div>
+            <hr class="mb-4">
+            <button id="submit" class="btn btn-primary btn-lg btn-block" type="button">Submit</button>
+          </form>
+        </div>
+      </div>
+
+      <hr class="mb-4">
+
+      <div class="row">
+        <div class="col-md-12">
+          <div id="result" style="display: none"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </body>
+</html>
