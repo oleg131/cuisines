@@ -7,12 +7,38 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import make_pipeline
 from flask import Flask, request, jsonify, send_from_directory
-
+from sklearn.base import TransformerMixin
 
 app = Flask(__name__)
 
+class Lemmatizer(TransformerMixin):
+    """Lemmatizer written using fit-predict paradigm."""
+    
+    def __init__(self, lemmatizer):
+        self.lemmatizer = lemmatizer
+        
+    def lemmatize(self, x):
+        """Lemmatize a single array of words."""
+        
+        # Join array as a single string
+        x = ' '.join(x)
+        
+        # Remove non-letter characters
+        x = re.sub('[^A-Za-z]', ' ', x)
+        
+        # Lemmatizer using specified lemmatizer
+        x = self.lemmatizer.lemmatize(x)
+        
+        return x
+    
+    def fit(self, X, y=None):
+        return self
+        
+    def transform(self, X):
+        return [self.lemmatize(i) for i in X]
 
-lemmatizer = WordNetLemmatizer()
+        
+lemmatizer = Lemmatizer(WordNetLemmatizer())
 
 vectorizer = TfidfVectorizer(**{
     'analyzer': 'word',
@@ -65,18 +91,11 @@ clf.coef_ = np.fromfile('coef.npy').reshape(-1, n_features)
 clf.intercept_ = np.fromfile('intercept.npy')
 clf.classes_ = np.loadtxt('classes.txt', delimiter=',', dtype=str)
 
-estimator = make_pipeline(vectorizer, clf)
-
-
-def lemmatize(x):
-    x = re.sub('[^A-Za-z]', ' ', x)
-    x = lemmatizer.lemmatize(x)
-    return x
+estimator = make_pipeline(lemmatizer, vectorizer, clf)
 
 
 def predict(query):
-    query = lemmatize(query)
-    pred = estimator.predict_proba([query])
+    pred = estimator.predict_proba([[query]])
     pred = {j: i for i, j in zip(pred[0], clf.classes_)}
 
     return pred
